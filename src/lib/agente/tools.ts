@@ -24,7 +24,7 @@ export const buscar_candidatos = tool({
   execute: async ({ presupuesto_max, preferencias_texto }) => {
     const { data, error } = await supabaseServer()
       .from("restaurantes")
-      .select("id, nombre, tipo_cocina, rango_precio, direccion, descripcion, patrocinado")
+      .select("id, nombre, tipo_cocina, rango_precio, direccion, descripcion, patrocinado, latitud, longitud")
       .lte("rango_precio", presupuesto_max);
     if (error) return { error: error.message };
 
@@ -34,7 +34,7 @@ export const buscar_candidatos = tool({
       .map((r) => {
         const texto = normalizar(`${r.nombre} ${r.tipo_cocina} ${r.descripcion ?? ""}`);
         const afinidad = palabras.filter((w) => texto.includes(w.slice(0, 5))).length;
-        return { id: r.id, nombre: r.nombre, cocina: r.tipo_cocina, precio: PRECIO[r.rango_precio], direccion: r.direccion, descripcion: r.descripcion, patrocinado: r.patrocinado, afinidad };
+        return { id: r.id, nombre: r.nombre, cocina: r.tipo_cocina, precio: PRECIO[r.rango_precio], direccion: r.direccion, descripcion: r.descripcion, patrocinado: r.patrocinado, latitud: r.latitud, longitud: r.longitud, afinidad };
       })
       .sort((a, b) => b.afinidad - a.afinidad || Number(b.patrocinado) - Number(a.patrocinado));
 
@@ -64,6 +64,7 @@ export const auditar_carta_grupo = tool({
 
     // Resumen compacto para el modelo (la UI usará la auditoría completa)
     return {
+      restaurante_id,
       restaurante: rest?.nombre,
       encaje_pct: a.encaje_pct,
       comensales: a.comensales.map((c) => ({

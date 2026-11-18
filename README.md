@@ -203,7 +203,7 @@ scripts/                 Comprobación de la BD y pruebas de reglas y agente
 - [x] **Fase 0:** esqueleto Next.js, selector de proveedor de IA, pantalla de inicio
 - [x] **Fase 1:** esquema Supabase + datos de demo
 - [x] **Fase 2:** agente con las 4 herramientas (`/api/chat`) + motor de reglas del semáforo
-- [ ] **Fase 3:** Modo 1: configurador de grupo + resultados en lista y mapa
+- [x] **Fase 3:** Modo 1: configurador de grupo + resultados en lista y mapa, con el progreso del agente en vivo
 - [ ] **Fase 4:** Modo 2: ficha del local con carta semáforo + "pegar carta"
 - [ ] **Fase 5:** memoria colectiva + búsqueda semántica (RAG)
 - [ ] **Fase 6:** despliegue en Vercel
