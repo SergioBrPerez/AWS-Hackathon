@@ -7,11 +7,15 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "db:check": "node --env-file=.env.local scripts/check-db.mjs"
+    "db:check": "node --env-file=.env.local scripts/check-db.mjs",
+    "test:reglas": "node --env-file=.env.local --conditions=react-server --import tsx scripts/probar-reglas.mts",
+    "agente": "node --env-file=.env.local --conditions=react-server --import tsx scripts/probar-agente.mts",
+    "ia:check": "node --env-file=.env.local --import tsx scripts/check-ia.mts"
   },
   "dependencies": {
     "@ai-sdk/amazon-bedrock": "^5.0.145",
     "@ai-sdk/google": "^4.0.122",
+    "@ai-sdk/provider": "^4.0.39",
     "@supabase/supabase-js": "^2.119.1",
     "ai": "^7.0.176",
     "leaflet": "^1.9.4",
@@ -32,6 +36,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.5.4",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }

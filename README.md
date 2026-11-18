@@ -59,13 +59,13 @@ flowchart TD
     U["📱 Usuario<br/>Web mobile-first (Vercel)"] --> API["Next.js API Routes<br/>+ Vercel AI SDK"]
     U --> MAP["🗺️ Leaflet + OpenStreetMap"]
     API --> LLM{"🧠 Agente de IA<br/>AI_PROVIDER"}
-    LLM -->|hackathon| BR["Amazon Bedrock<br/>(Claude)"]
-    LLM -->|desarrollo / post-72h| GE["Google Gemini"]
+    LLM -->|1º si hay credenciales| BR["Amazon Bedrock<br/>(Claude)"]
+    LLM -->|respaldo| GE["Google Gemini"]
     LLM --> T["🔧 4 herramientas<br/>(function calling)"]
     T --> DB[("Supabase<br/>PostgreSQL + pgvector")]
 ```
 
-**Por qué esta arquitectura:** la cuenta de AWS del hackathon caduca a las 72 h. El agente se conecta a través del **Vercel AI SDK**, así que para cambiar de modelo basta una variable de entorno (`AI_PROVIDER=bedrock|google`), sin tocar código. Los datos viven en Supabase, fuera de AWS, y la demo sigue funcionando después del hackathon.
+**Por qué esta arquitectura:** las credenciales de AWS del workshop son temporales. El agente se conecta a través del **Vercel AI SDK** con una cadena de modelos: usa Claude en Amazon Bedrock mientras haya credenciales y, si caducan o fallan, pasa solo a Gemini, sin tocar código. Los datos viven en Supabase, fuera de AWS, y la demo sigue funcionando después del hackathon.
 
 ### Flujo de una búsqueda en grupo (Modo 1)
 
@@ -99,6 +99,8 @@ sequenceDiagram
 | `registrar_feedback_eleccion(firma_perfil, restaurante_id, platos)` | Al pulsar "Confirmar elección", suma 1 al contador para reforzar futuras recomendaciones. |
 
 ### Cómo decide el semáforo
+
+El semáforo combina **reglas en código** (rápidas, deterministas y conservadoras) con la **IA solo para los casos dudosos**, en una única llamada por restaurante ([`src/lib/semaforo/`](src/lib/semaforo/)). Si la IA falla, el plato queda en 🔴 por seguridad.
 
 Para cada plato y cada comensal:
 1. **¿Hay ingredientes?** Si la carta no los da, el agente infiere los típicos del plato (p. ej., cocido madrileño → garbanzos, carnes, chorizo, tocino…) y lo indica.
@@ -148,7 +150,7 @@ erDiagram
 | Capa | Tecnología |
 |---|---|
 | Frontend + backend ligero | Next.js 15 (App Router) + TypeScript + Tailwind, desplegado en **Vercel** |
-| IA | **Vercel AI SDK**: Amazon Bedrock (Claude) durante el hackathon · Google Gemini en desarrollo y después |
+| IA | **Vercel AI SDK**: Amazon Bedrock (Claude Opus 5.5) como principal · Google Gemini de respaldo |
 | Datos | **Supabase**: PostgreSQL + pgvector (embeddings `gte-small`) |
 | Mapa | Leaflet + OpenStreetMap (sin API key) |
 
@@ -166,26 +168,41 @@ cp .env.example .env.local     # rellenar (ver comentarios dentro del archivo)
 2. [`supabase/seed.sql`](supabase/seed.sql): 12 restaurantes ficticios de Madrid con 72 platos de prueba.
 
 ```bash
-npm run db:check   # comprueba claves, tablas y datos
-npm run dev        # http://localhost:3000
+npm run db:check      # comprueba claves, tablas y datos
+npm run ia:check      # qué modelos de IA responden (Bedrock / Gemini) y cuánto tardan
+npm run test:reglas   # prueba el motor de reglas del semáforo (sin IA)
+npm run agente -- "Somos 2: Ana celíaca y Bea vegana, presupuesto €"   # habla con el agente
+npm run dev           # http://localhost:3000
 ```
+
+### Modelos de IA: cadena de respaldo
+
+La app prueba los modelos **en orden** y salta al siguiente si uno falla (credenciales caducadas, cuota agotada, saturación o tiempo de espera de `AI_TIMEOUT_S`):
+
+1. **Amazon Bedrock · Claude** (`BEDROCK_MODEL_ID`): solo si hay credenciales AWS en `.env.local`. Las del workshop son **temporales**; para renovarlas, ejecutar `aws configure export-credentials --format env` en la terminal del workshop.
+2. **Google Gemini** (`GEMINI_MODEL_ID` y luego `GEMINI_FALLBACK_MODELS`).
+
+Un modelo que falla se salta durante un rato (10 min si son credenciales, 30 s si es saturación). `npm run ia:check` muestra qué modelos responden ahora mismo.
 
 ### Estructura del repo
 
 ```
 src/app/                 Pantallas y API routes
-src/lib/ai/model.ts      Selección de proveedor de IA (AI_PROVIDER)
+src/lib/ai/model.ts      Cadena de modelos de IA: Bedrock → Gemini
+src/lib/agente/          Herramientas del agente y prompt de sistema
+src/lib/semaforo/        Motor de reglas + auditoría con IA de los casos dudosos
+src/lib/restricciones.ts Restricciones soportadas y firma de perfil
 src/lib/supabase/        Clientes (navegador / servidor) y tipos
 supabase/migrations/     Esquema SQL versionado
 supabase/seed.sql        Datos de demo
-scripts/check-db.mjs     Verificación de la base de datos
+scripts/                 Comprobación de la BD y pruebas de reglas y agente
 ```
 
 ## 6. Hoja de ruta
 
 - [x] **Fase 0:** esqueleto Next.js, selector de proveedor de IA, pantalla de inicio
 - [x] **Fase 1:** esquema Supabase + datos de demo
-- [ ] **Fase 2:** agente con las 4 herramientas (`/api/chat`)
+- [x] **Fase 2:** agente con las 4 herramientas (`/api/chat`) + motor de reglas del semáforo
 - [ ] **Fase 3:** Modo 1: configurador de grupo + resultados en lista y mapa
 - [ ] **Fase 4:** Modo 2: ficha del local con carta semáforo + "pegar carta"
 - [ ] **Fase 5:** memoria colectiva + búsqueda semántica (RAG)
