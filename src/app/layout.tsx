@@ -1,5 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+// Estilos de Leaflet (mapa) cargados globalmente: si solo se importan dentro del
+// componente dinámico del mapa, a veces no se aplican y las teselas se descolocan.
+import "leaflet/dist/leaflet.css";
 import "./globals.css";
 
 const geistSans = Geist({

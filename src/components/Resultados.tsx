@@ -7,7 +7,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import type { AgenteMessage } from "@/lib/agente/tipos";
-import { mesaAPrompt, resumenMesa, UBICACION, type Mesa } from "@/lib/mesa";
+import { emojiCocina, mesaAPrompt, resumenMesa, UBICACION, type Mesa } from "@/lib/mesa";
 import type { PuntoMapa } from "./Mapa";
 
 const Mapa = dynamic(() => import("./Mapa"), {
@@ -86,6 +86,19 @@ export function Resultados({ mesa, onEditar }: { mesa: Mesa; onEditar: () => voi
       (datos.experiencia.get(b.restaurante_id)?.veces_elegido ?? 0) - (datos.experiencia.get(a.restaurante_id)?.veces_elegido ?? 0)
     );
   });
+
+  // Cuando el agente ya ha escrito su recomendación, separamos lo que recomienda
+  // de lo que ha revisado y descartado (p.ej. el italiano que pedisteis, al 0 %).
+  const hayRecomendacion = respuesta.orden.length > 0;
+  const recomendados = hayRecomendacion ? ranking.filter((a) => respuesta.orden.includes(norm(a.restaurante ?? ""))) : ranking;
+  const descartados = hayRecomendacion ? ranking.filter((a) => !respuesta.orden.includes(norm(a.restaurante ?? ""))) : [];
+
+  // Candidatos que el agente no ha auditado, del más cercano al más lejano
+  const otros = trabajando
+    ? []
+    : [...datos.candidatos.values()]
+        .filter((c) => !datos.auditorias.has(c.id))
+        .sort((a, b) => (distancia(a) ?? 0) - (distancia(b) ?? 0));
 
   const idsPuntos = [...datos.candidatos.keys()].join() + "|" + [...datos.auditorias.keys()].join();
   const puntos: PuntoMapa[] = useMemo(
@@ -176,8 +189,9 @@ export function Resultados({ mesa, onEditar }: { mesa: Mesa; onEditar: () => voi
               <Mapa key={enfoque ?? "todos"} puntos={puntos} yo={UBICACION.coords} nombreYo={UBICACION.nombre} enfocar={enfoque} onSeleccionar={seleccionar} />
               <p className="text-xs text-muted">📍 Distancias desde {UBICACION.nombre}. Pulsa un pin para ver su información.</p>
             </>
-          ) : ranking.length ? (
-            ranking.map((a) => (
+          ) : (
+            <>
+            {recomendados.map((a) => (
               <Tarjeta
                 key={a.restaurante_id}
                 auditoria={a}
@@ -190,9 +204,60 @@ export function Resultados({ mesa, onEditar }: { mesa: Mesa; onEditar: () => voi
                 onVerMapa={() => verEnMapa(a.restaurante_id)}
                 onElegir={() => enviar(`Confirmamos la elección: ${a.restaurante} (restaurante_id ${a.restaurante_id}).`)}
               />
-            ))
-          ) : (
-            <p className="text-sm text-muted">Revisando cartas…</p>
+            ))}
+            {ranking.length === 0 && trabajando && <p className="text-sm text-muted">Revisando cartas…</p>}
+
+            {/* Revisados pero NO recomendados: plegados y con el motivo */}
+            {descartados.length > 0 && (
+              <details key={destacado} open={descartados.some((a) => a.restaurante_id === destacado) || undefined} className="rounded-2xl border border-line bg-card">
+                <summary className="cursor-pointer px-4 py-3 text-sm font-medium text-muted">
+                  Revisados y descartados ({descartados.length})
+                </summary>
+                <ul className="divide-y divide-line border-t border-line">
+                  {descartados.map((a) => {
+                    const sinOpciones = a.comensales.filter((c) => c.aptos.length + c.con_modificacion.length === 0).map((c) => c.nombre);
+                    const sinPrincipal = a.comensales.filter((c) => !c.tiene_principal_apto).map((c) => c.nombre);
+                    const motivo = sinOpciones.length
+                      ? `Ningún plato apto para ${sinOpciones.join(", ")}`
+                      : sinPrincipal.length ? `Sin plato principal apto para ${sinPrincipal.join(", ")}` : "Encaja peor que los recomendados";
+                    return (
+                      <li key={a.restaurante_id} id={`r-${a.restaurante_id}`} className="flex items-center gap-3 px-4 py-3">
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate font-medium">{a.restaurante}</span>
+                          <span className="block text-sm text-rojo">{motivo}</span>
+                        </span>
+                        <span className="shrink-0 rounded-full bg-line px-2 py-0.5 text-xs font-semibold text-muted">{a.encaje_pct}%</span>
+                        <Link href={`/restaurante/${a.restaurante_id}`} className="shrink-0 text-sm font-medium text-brand">Ver carta</Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </details>
+            )}
+
+            {/* El resto de restaurantes del presupuesto, sin auditar: se puede abrir su carta igualmente */}
+            {otros.length > 0 && (
+              <div className="mt-2 flex flex-col gap-2">
+                <h3 className="px-1 text-sm font-semibold uppercase tracking-wide text-muted">
+                  {ranking.length ? "Más restaurantes en vuestro presupuesto" : "Restaurantes en vuestro presupuesto"}
+                </h3>
+                {otros.map((c) => (
+                  <div key={c.id} id={`r-${c.id}`}
+                    className={`flex items-center gap-3 rounded-2xl border bg-card p-3 ${destacado === c.id ? "border-brand ring-2 ring-brand/30" : "border-line"}`}>
+                    <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-2xl" aria-hidden>{emojiCocina(c.cocina)}</span>
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-medium">{c.nombre}</span>
+                      <span className="block truncate text-sm text-muted">
+                        {c.cocina} · {c.precio} · {distancia(c)!.toFixed(1).replace(".", ",")} km de Sol
+                      </span>
+                    </span>
+                    <button onClick={() => verEnMapa(c.id)} className="shrink-0 rounded-lg px-2 py-1.5 text-sm" aria-label={`Ver ${c.nombre} en el mapa`}>📍</button>
+                    <Link href={`/restaurante/${c.id}`} className="shrink-0 rounded-lg bg-brand-soft px-3 py-1.5 text-sm font-medium text-brand">Ver carta</Link>
+                  </div>
+                ))}
+              </div>
+            )}
+            </>
           )}
         </section>
       )}
@@ -231,7 +296,7 @@ export function Resultados({ mesa, onEditar }: { mesa: Mesa; onEditar: () => voi
         className="fixed inset-x-0 bottom-0 border-t border-line bg-background/95 px-4 pt-3 backdrop-blur"
         style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}
       >
-        <div className="mx-auto flex max-w-md gap-2">
+        <div className="mx-auto flex max-w-md gap-2 md:max-w-2xl">
           <input
             value={texto}
             onChange={(e) => setTexto(e.target.value)}

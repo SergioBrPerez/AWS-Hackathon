@@ -30,6 +30,13 @@ export function cargarMesa(): Mesa | null {
 
 export const PRECIO = ["", "€", "€€", "€€€"] as const;
 
+/** Emoji por tipo de cocina (pines del mapa y listas). */
+export const EMOJI_COCINA: Record<string, string> = {
+  italiana: "🍝", tapas: "🍤", vegana: "🥗", japonesa: "🍣", asador: "🥩", "sin gluten": "🌾",
+  mexicana: "🌮", "mediterránea": "🫒", casera: "🍲", india: "🍛", francesa: "🧀", poke: "🥢",
+};
+export const emojiCocina = (c: string) => EMOJI_COCINA[c.toLowerCase()] ?? "🍽️";
+
 /** Punto de partida por defecto para distancias y mapa (no se pide la ubicación). */
 export const UBICACION = { nombre: "Puerta del Sol", coords: [40.4169, -3.7035] as [number, number] };
 

@@ -135,7 +135,7 @@ export function Configurador({ mesa, onChange, onBuscar, modo = "buscar", textoB
       </>)}
 
       <div className="fixed inset-x-0 bottom-0 border-t border-line bg-background/95 px-4 pt-3 backdrop-blur" style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
-        <button onClick={onBuscar} className="mx-auto block w-full max-w-md rounded-2xl bg-brand py-4 text-base font-semibold text-white shadow-sm active:scale-[0.99]">
+        <button onClick={onBuscar} className="mx-auto block w-full max-w-md rounded-2xl md:max-w-2xl bg-brand py-4 text-base font-semibold text-white shadow-sm active:scale-[0.99]">
           {textoBoton}
         </button>
       </div>

@@ -15,7 +15,8 @@ const porCategoria = (a: Veredicto, b: Veredicto) => ORDEN_CATEGORIA[a.categoria
 export function CartaSemaforo({ auditoria, platos, titulo, subtitulo, onConfirmar }: {
   auditoria: AuditoriaGrupo;
   platos: Plato[];
-  titulo: string;
+  /** Sin título solo se muestra el % de encaje (la página ya enseña el nombre) */
+  titulo?: string;
   subtitulo?: string;
   /** Solo para restaurantes de la base de datos (alimenta la memoria colectiva). */
   onConfirmar?: () => Promise<{ veces_elegido: number }>;
@@ -41,8 +42,9 @@ export function CartaSemaforo({ auditoria, platos, titulo, subtitulo, onConfirma
     <div className={`flex flex-col gap-4 ${onConfirmar ? "pb-28" : "pb-8"}`}>
       <header className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="text-2xl font-bold leading-tight">{titulo}</h2>
+          {titulo && <h2 className="text-2xl font-bold leading-tight">{titulo}</h2>}
           {subtitulo && <p className="mt-1 text-sm text-muted">{subtitulo}</p>}
+          {!titulo && auditoria.comensales.length > 1 && <p className="text-sm text-muted">Encaje de la mesa</p>}
         </div>
         {auditoria.comensales.length > 1 && (
           <span className={`shrink-0 rounded-full px-3 py-1 text-sm font-semibold text-white ${color}`} title="Comensales con al menos un principal apto">
@@ -101,7 +103,7 @@ export function CartaSemaforo({ auditoria, platos, titulo, subtitulo, onConfirma
 
       {onConfirmar && (
         <div className="fixed inset-x-0 bottom-0 border-t border-line bg-background/95 px-4 pt-3 backdrop-blur" style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
-          <div className="mx-auto max-w-md">
+          <div className="mx-auto max-w-md md:max-w-2xl">
             {typeof confirmacion === "object" ? (
               <p className="rounded-2xl bg-green-50 py-3 text-center text-sm">
                 ✅ <strong>¡Elección registrada!</strong> Ya la han elegido {confirmacion.veces} {confirmacion.veces === 1 ? "grupo" : "grupos"} como el vuestro.

@@ -1,6 +1,5 @@
 "use client";
 
-import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useEffect, useRef } from "react";
 import { MapContainer, Marker, Popup, TileLayer, useMap } from "react-leaflet";
@@ -15,11 +14,16 @@ export type PuntoMapa = {
   /** undefined = candidato no auditado */
   encaje?: number;
   distanciaKm?: number;
+  /** Texto propio del pin (p.ej. "🍝 €€"); si se da, el pin va en color de marca */
+  etiqueta?: string;
+  /** Línea extra en la ficha (p.ej. tipo de cocina) */
+  subtitulo?: string;
 };
 
 const colorEncaje = (e: number) => (e >= 100 ? "var(--verde)" : e >= 50 ? "var(--amarillo)" : "var(--rojo)");
 
 function icono(p: PuntoMapa) {
+  if (p.etiqueta) return L.divIcon({ className: "", iconSize: [0, 0], html: `<span class="pin pin-marca">${p.etiqueta}</span>` });
   const auditado = p.encaje !== undefined;
   return L.divIcon({
     className: "",
@@ -32,12 +36,25 @@ function icono(p: PuntoMapa) {
 
 const iconoYo = L.divIcon({ className: "", iconSize: [0, 0], html: `<span class="pin pin-yo" title="Estás aquí"></span>` });
 
+/** Recalcula el tamaño del mapa cuando cambia el de su contenedor. */
+function AjusteTamano() {
+  const map = useMap();
+  useEffect(() => {
+    const obs = new ResizeObserver(() => map.invalidateSize());
+    obs.observe(map.getContainer());
+    return () => obs.disconnect();
+  }, [map]);
+  return null;
+}
+
 /** Encuadra todos los puntos, o centra uno concreto y abre su ficha. */
 function Encuadre({ puntos, yo, enfocar, marcadores }: {
   puntos: PuntoMapa[]; yo?: [number, number]; enfocar?: string; marcadores: React.RefObject<Record<string, L.Marker>>;
 }) {
   const map = useMap();
   useEffect(() => {
+    // Por si el contenedor cambió de tamaño tras crear el mapa (animaciones, carga diferida)
+    map.invalidateSize();
     const p = enfocar && puntos.find((x) => x.id === enfocar);
     if (p) {
       map.setView([p.latitud, p.longitud], 17);
@@ -51,12 +68,16 @@ function Encuadre({ puntos, yo, enfocar, marcadores }: {
   return null;
 }
 
-export default function Mapa({ puntos, yo, nombreYo = "Estás aquí", enfocar, onSeleccionar }: {
-  puntos: PuntoMapa[]; yo?: [number, number]; nombreYo?: string; enfocar?: string; onSeleccionar?: (id: string) => void;
+export default function Mapa({ puntos, yo, nombreYo = "Estás aquí", enfocar, onSeleccionar, textoAccion = "Ver su tarjeta →", alto = "h-[60vh] min-h-80" }: {
+  puntos: PuntoMapa[]; yo?: [number, number]; nombreYo?: string; enfocar?: string;
+  /** Acción del botón de la ficha de cada pin */
+  onSeleccionar?: (id: string) => void; textoAccion?: string;
+  /** Clases de altura del mapa */
+  alto?: string;
 }) {
   const marcadores = useRef<Record<string, L.Marker>>({});
   return (
-    <div className="h-[60vh] min-h-80 overflow-hidden rounded-2xl border border-line">
+    <div className={`${alto} overflow-hidden rounded-2xl border border-line`}>
       <MapContainer center={[40.4168, -3.7038]} zoom={12} scrollWheelZoom className="h-full w-full">
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -73,15 +94,16 @@ export default function Mapa({ puntos, yo, nombreYo = "Estás aquí", enfocar, o
           >
             <Popup>
               <strong>{p.nombre}</strong>
+              {p.subtitulo && <><br />{p.subtitulo}</>}
               {p.direccion && <><br />{p.direccion}</>}
               <br />
-              {p.encaje !== undefined ? `Encaje ${p.encaje}% · ${p.precio}` : `${p.precio} · sin auditar`}
+              {p.encaje !== undefined ? `Encaje ${p.encaje}% · ${p.precio}` : p.precio}
               {p.distanciaKm !== undefined && ` · a ${p.distanciaKm.toFixed(1).replace(".", ",")} km`}
-              {onSeleccionar && p.encaje !== undefined && (
+              {onSeleccionar && (
                 <>
                   <br />
                   <button onClick={() => onSeleccionar(p.id)} style={{ color: "var(--brand)", fontWeight: 600, marginTop: 4 }}>
-                    Ver su tarjeta →
+                    {textoAccion}
                   </button>
                 </>
               )}
@@ -93,6 +115,7 @@ export default function Mapa({ puntos, yo, nombreYo = "Estás aquí", enfocar, o
             <Popup>📍 {nombreYo}</Popup>
           </Marker>
         )}
+        <AjusteTamano />
         <Encuadre puntos={puntos} yo={yo} enfocar={enfocar} marcadores={marcadores} />
       </MapContainer>
     </div>

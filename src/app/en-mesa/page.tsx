@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Cabecera } from "@/components/Cabecera";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { CartaSemaforo } from "@/components/CartaSemaforo";
@@ -78,17 +78,11 @@ export default function EnMesaPage() {
   const atras = () => setPaso(paso === "resultado" || paso === "procesando" ? "carta" : "comensales");
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col gap-4 px-4 py-6">
-      <header className="flex items-center gap-3">
-        {paso === "comensales" ? (
-          <Link href="/" className="text-2xl leading-none" aria-label="Volver al inicio">←</Link>
-        ) : (
-          <button onClick={atras} className="text-2xl leading-none" aria-label="Atrás">←</button>
-        )}
-        <h1 className="text-xl font-bold">
-          {paso === "comensales" ? "¿Quién está en la mesa?" : paso === "resultado" ? "Carta semáforo" : "Estoy en el restaurante"}
-        </h1>
-      </header>
+    <main className="mx-auto flex min-h-screen max-w-md flex-col gap-4 px-4 py-6 md:max-w-2xl md:py-8">
+      <Cabecera
+        titulo={paso === "comensales" ? "¿Quién está en la mesa?" : paso === "resultado" ? "Carta semáforo" : "Estoy en el restaurante"}
+        onAtras={paso === "comensales" ? undefined : atras}
+      />
 
       {paso === "comensales" && (
         <Configurador
@@ -142,7 +136,7 @@ export default function EnMesaPage() {
               <button
                 onClick={analizar}
                 disabled={fuente === "foto" ? fotos.length === 0 : texto.trim().length < 10}
-                className="mx-auto block w-full max-w-md rounded-2xl bg-brand py-4 text-base font-semibold text-white disabled:opacity-40"
+                className="mx-auto block w-full max-w-md rounded-2xl md:max-w-2xl bg-brand py-4 text-base font-semibold text-white disabled:opacity-40"
               >
                 Analizar carta
               </button>

@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Cabecera } from "@/components/Cabecera";
 import { useEffect, useState } from "react";
 import { Configurador } from "@/components/Configurador";
 import { Resultados } from "@/components/Resultados";
@@ -24,15 +24,11 @@ export default function BuscarPage() {
   };
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col gap-4 px-4 py-6">
-      <header className="flex items-center gap-3">
-        {busqueda ? (
-          <button onClick={() => setBusqueda(0)} className="text-2xl leading-none" aria-label="Volver al configurador">←</button>
-        ) : (
-          <Link href="/" className="text-2xl leading-none" aria-label="Volver al inicio">←</Link>
-        )}
-        <h1 className="text-xl font-bold">{busqueda ? "Recomendaciones" : "Configura vuestra mesa"}</h1>
-      </header>
+    <main className="mx-auto flex min-h-screen max-w-md flex-col gap-4 px-4 py-6 md:max-w-2xl md:py-8">
+      <Cabecera
+        titulo={busqueda ? "Recomendaciones" : "Configura vuestra mesa"}
+        onAtras={busqueda ? () => setBusqueda(0) : undefined}
+      />
 
       {busqueda ? (
         <Resultados key={busqueda} mesa={mesa} onEditar={() => setBusqueda(0)} />
