@@ -33,15 +33,20 @@ Una **web app mobile-first** con un **agente de IA** que actúa como *mediador g
 - **Motor de aproximación:** si ningún sitio encaja al 100 %, el agente no devuelve "0 resultados", sino las mejores alternativas y el compromiso que implican (*"cumple para 3 de vosotros y tiene 4 platos adaptables para la persona vegana"*).
 
 **🍽️ Modo 2 — Estoy en el restaurante**
-- Eliges el local de la lista, **haces una foto a la carta** (hasta 4 páginas) o **pegas su texto**, y el agente la clasifica con un **semáforo por comensal**:
+- **Buscas el local** (por nombre, cocina, calle o lo que te apetezca), **haces una foto a la carta** (hasta 4 páginas) o **pegas su texto**, y el agente la clasifica con un **semáforo por comensal**:
   - 🟢 **Apto tal cual**
   - 🟡 **Apto con modificación**: *"Pedir sin chorizo (huevos y patatas son 100 % aptos)"*
   - 🔴 **No recomendado**, con el motivo del riesgo
+
+**🗺️ Inicio — Restaurantes cerca de Sol**
+- Mapa con los restaurantes alrededor de la Puerta del Sol. Cada pin abre la **ficha del local** con su **carta completa** (platos, precios y alérgenos), sin configurar nada. Desde la ficha se puede pasar a la carta semáforo para tu mesa y **confirmar la elección**.
 
 ### Capacidades del agente
 
 - **Auditoría profunda de ingredientes y embarazo:** revisa *todos* los ingredientes y, si el plato no los detalla, **infiere los probables** a partir del nombre y la descripción.
 - **Smart Removal:** decide si un plato se vuelve apto quitando un único ingrediente superficial o una guarnición.
+- **Lectura de cartas por foto:** transcribe la carta (platos, precios y alérgenos indicados) y la pasa por el mismo semáforo. Como una carta nunca lista todos los ingredientes, la IA revisa además la receta tradicional completa (p. ej. el salmorejo lleva pan).
+- **Búsqueda por significado (RAG):** "algo ligero y asiático" o "ramen" encuentran restaurantes aunque esas palabras no aparezcan en su ficha.
 - **Mapa y filtro económico:** distancia, % de compatibilidad del grupo y rango de precio de un vistazo.
 - **Memoria colectiva:** cada elección confirmada se registra. Así, grupos con un perfil similar ven *"Elegido por 9 grupos con perfil celíaco + embarazo"*.
 
@@ -74,17 +79,21 @@ sequenceDiagram
     participant U as Usuario
     participant A as Agente IA
     participant DB as Supabase
-    U->>A: 4 comensales (celíaca, embarazada, vegetariano, €€) + "nada de fritos"
-    A->>DB: buscar_candidatos(presupuesto_max=2, "sin fritos")
-    DB-->>A: restaurantes candidatos
-    loop por cada candidato
+    U->>A: 4 comensales (celíaca, embarazada, vegetariano, €€) + "italiano o tapas, nada de fritos"
+    par en paralelo
+        A->>DB: buscar_candidatos(presupuesto_max=2, "italiano o tapas")
+        DB-->>A: candidatos ordenados por significado (pgvector)
+    and
+        A->>DB: consultar_experiencia_previa("embarazo+sin_gluten+vegetariano")
+        DB-->>A: "elegido por N grupos"
+    end
+    par los 3 mejores candidatos a la vez
         A->>DB: auditar_carta_grupo(restaurante, perfiles)
         DB-->>A: platos + ingredientes + nota_cocina
-        Note over A: clasifica cada plato 🟢🟡🔴 por comensal
+        Note over A: reglas + IA → 🟢🟡🔴 por comensal
     end
-    A->>DB: consultar_experiencia_previa("celiaco+embarazo+vegetariano")
-    DB-->>A: "elegido por N grupos"
-    A-->>U: ranking + % de encaje + explicación del compromiso
+    Note over A: aplica los vetos ("nada de fritos") y el motor de aproximación
+    A-->>U: resumen + nota por restaurante (tarjetas con % de encaje y platos)
     U->>A: Confirmar elección
     A->>DB: registrar_feedback_eleccion(...)  ➜ memoria colectiva
 ```
@@ -100,7 +109,7 @@ sequenceDiagram
 
 ### Cómo decide el semáforo
 
-El semáforo combina **reglas en código** (rápidas, deterministas y conservadoras) con la **IA solo para los casos dudosos**, en una única llamada por restaurante ([`src/lib/semaforo/`](src/lib/semaforo/)). Si la IA falla, el plato queda en 🔴 por seguridad.
+El semáforo combina **reglas en código** (rápidas, deterministas y conservadoras) con la **IA solo para los casos dudosos**, que se envían en lotes pequeños en paralelo ([`src/lib/semaforo/`](src/lib/semaforo/)). En las cartas leídas de una foto o texto, la IA revisa también lo que las reglas dan por bueno, porque la carta no lista todos los ingredientes. Si la IA falla, el plato queda en 🔴 por seguridad.
 
 Para cada plato y cada comensal:
 1. **¿Hay ingredientes?** Si la carta no los da, el agente infiere los típicos del plato (p. ej., cocido madrileño → garbanzos, carnes, chorizo, tocino…) y lo indica.
@@ -150,13 +159,13 @@ erDiagram
 | Capa | Tecnología |
 |---|---|
 | Frontend + backend ligero | Next.js 15 (App Router) + TypeScript + Tailwind, desplegado en **Vercel** |
-| IA | **Vercel AI SDK**: Amazon Bedrock (Claude Opus 5.5) como principal · Google Gemini de respaldo |
-| Datos | **Supabase**: PostgreSQL + pgvector (embeddings `gte-small`) |
+| IA | **Vercel AI SDK**: Amazon Bedrock (Claude Sonnet 5.5) como principal · Google Gemini de respaldo |
+| Datos | **Supabase**: PostgreSQL + pgvector · Edge Function con embeddings `gte-small` |
 | Mapa | Leaflet + OpenStreetMap (sin API key) |
 
 ## 5. Puesta en marcha
 
-**Requisitos:** Node 20+, una cuenta de Supabase y una API key de Google AI Studio.
+**Requisitos:** Node 20+, un proyecto de Supabase y una API key de Google AI Studio. Las credenciales de AWS (Bedrock) son opcionales: sin ellas la app usa Gemini.
 
 ```bash
 npm install
@@ -213,18 +222,41 @@ Comparamos 8 modelos en las 3 tareas de la app, con 2 repeticiones. **A**: semá
 ### Estructura del repo
 
 ```
-src/app/                 Pantallas y API routes
-src/lib/ai/model.ts      Cadena de modelos de IA: Bedrock → Gemini
-src/lib/agente/          Herramientas del agente y prompt de sistema
-src/lib/semaforo/        Motor de reglas, auditoría con IA de los casos dudosos y lectura de cartas (foto/texto)
-src/lib/restricciones.ts Restricciones soportadas y firma de perfil
-src/lib/supabase/        Clientes (navegador / servidor) y tipos
-supabase/migrations/     Esquema SQL versionado
-supabase/seed.sql        Datos de demo
-scripts/                 Comprobación de la BD y pruebas de reglas y agente
+src/app/                   Pantallas (inicio, /buscar, /en-mesa, /restaurante/[id]) y API routes
+src/components/            Componentes de interfaz (configurador, resultados, mapa, carta semáforo…)
+src/lib/ai/model.ts        Cadena de modelos de IA: Bedrock → Gemini
+src/lib/agente/            Herramientas del agente y prompt de sistema
+src/lib/semaforo/          Motor de reglas, auditoría con IA y lectura de cartas (foto/texto)
+src/lib/busqueda/          Búsqueda semántica (pgvector)
+src/lib/embeddings.ts      Llamada a la Edge Function de embeddings
+src/lib/restricciones.ts   Restricciones soportadas y firma de perfil
+src/lib/mesa.ts            Mesa de comensales (navegador), ubicación por defecto
+src/lib/supabase/          Clientes (navegador / servidor) y tipos
+supabase/migrations/       Esquema SQL versionado
+supabase/functions/embed/  Edge Function de embeddings (gte-small)
+supabase/seed.sql          Datos de demo
+scripts/                   Comprobaciones, pruebas, embeddings y comparativa de modelos
 ```
 
-## 6. Hoja de ruta
+## 6. Despliegue en Vercel
+
+1. En [vercel.com](https://vercel.com), **Add New → Project**, e importa este repositorio de GitHub. Vercel detecta Next.js solo.
+2. En **Environment Variables**, añade las mismas variables que en `.env.local`:
+
+   | Variable | Obligatoria | Nota |
+   |---|---|---|
+   | `NEXT_PUBLIC_SUPABASE_URL` | ✅ | |
+   | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | ✅ | |
+   | `SUPABASE_SECRET_KEY` | ✅ | Solo se usa en el servidor |
+   | `GOOGLE_GENERATIVE_AI_API_KEY` | ✅ | Respaldo cuando no hay Bedrock |
+   | `AI_PROVIDER`, `GEMINI_MODEL_ID`, `GEMINI_FALLBACK_MODELS`, `AI_TIMEOUT_S` | Recomendadas | Si faltan, se usan los valores por defecto |
+   | `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN`, `BEDROCK_MODEL_ID` | Opcionales | Temporales: cuando caducan, la app pasa sola a Gemini. Para renovarlas, actualízalas en Vercel y haz **Redeploy** |
+
+3. Pulsa **Deploy**. Cada `git push` a `main` vuelve a desplegar.
+
+Las rutas de IA tienen un límite de 60 s (`maxDuration`), suficiente para el agente (~15-40 s) y para leer una foto de carta.
+
+## 7. Hoja de ruta
 
 - [x] **Fase 0:** esqueleto Next.js, selector de proveedor de IA, pantalla de inicio
 - [x] **Fase 1:** esquema Supabase + datos de demo

@@ -1,7 +1,7 @@
 /**
  * Auditoría de una carta para un grupo (capa 1 reglas + capa 2 IA).
- * Se usa desde la tool `auditar_carta_grupo` y, en la Fase 4, desde la
- * pantalla "Carta semáforo" (también con cartas pegadas por el usuario).
+ * Se usa desde la tool `auditar_carta_grupo` del agente y desde la API
+ * /api/carta/auditar (ficha del local y cartas leídas de una foto o texto).
  */
 import { generateText, Output } from "ai";
 import { z } from "zod";

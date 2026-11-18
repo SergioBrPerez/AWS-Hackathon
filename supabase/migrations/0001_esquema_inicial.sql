@@ -5,7 +5,7 @@
 -- =====================================================================
 
 -- pgvector para la búsqueda semántica (RAG). Los embeddings (gte-small,
--- 384 dimensiones) se rellenan en la Fase 5; de momento quedan a NULL.
+-- 384 dimensiones) los calcula `npm run embeddings` (ver 0002_busqueda_semantica.sql).
 create extension if not exists vector with schema extensions;
 
 -- ---------------------------------------------------------------------
