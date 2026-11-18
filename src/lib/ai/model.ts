@@ -24,5 +24,5 @@ export function getModel(): LanguageModel {
   const google = createGoogleGenerativeAI({
     apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
   });
-  return google(process.env.GEMINI_MODEL_ID ?? "gemini-2.5-flash");
+  return google(process.env.GEMINI_MODEL_ID ?? "gemini-3.5-flash");
 }
