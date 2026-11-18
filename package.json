@@ -10,7 +10,8 @@
     "db:check": "node --env-file=.env.local scripts/check-db.mjs",
     "test:reglas": "node --env-file=.env.local --conditions=react-server --import tsx scripts/probar-reglas.mts",
     "agente": "node --env-file=.env.local --conditions=react-server --import tsx scripts/probar-agente.mts",
-    "ia:check": "node --env-file=.env.local --import tsx scripts/check-ia.mts"
+    "ia:check": "node --env-file=.env.local --import tsx scripts/check-ia.mts",
+    "carta": "node --env-file=.env.local --conditions=react-server --import tsx scripts/probar-carta.mts"
   },
   "dependencies": {
     "@ai-sdk/amazon-bedrock": "^5.0.145",

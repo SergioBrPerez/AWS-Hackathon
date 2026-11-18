@@ -33,7 +33,7 @@ Una **web app mobile-first** con un **agente de IA** que actúa como *mediador g
 - **Motor de aproximación:** si ningún sitio encaja al 100 %, el agente no devuelve "0 resultados", sino las mejores alternativas y el compromiso que implican (*"cumple para 3 de vosotros y tiene 4 platos adaptables para la persona vegana"*).
 
 **🍽️ Modo 2 — Estoy en el restaurante**
-- Eliges el local (o **pegas la carta**) y el agente la clasifica en segundos con un **semáforo por comensal**:
+- Eliges el local de la lista, **haces una foto a la carta** (hasta 4 páginas) o **pegas su texto**, y el agente la clasifica con un **semáforo por comensal**:
   - 🟢 **Apto tal cual**
   - 🟡 **Apto con modificación**: *"Pedir sin chorizo (huevos y patatas son 100 % aptos)"*
   - 🔴 **No recomendado**, con el motivo del riesgo
@@ -172,6 +172,7 @@ npm run db:check      # comprueba claves, tablas y datos
 npm run ia:check      # qué modelos de IA responden (Bedrock / Gemini) y cuánto tardan
 npm run test:reglas   # prueba el motor de reglas del semáforo (sin IA)
 npm run agente -- "Somos 2: Ana celíaca y Bea vegana, presupuesto €"   # habla con el agente
+npm run carta -- foto-carta.jpg   # lee una carta (foto o .txt) y muestra el semáforo
 npm run dev           # http://localhost:3000
 ```
 
@@ -190,7 +191,7 @@ Un modelo que falla se salta durante un rato (10 min si son credenciales, 30 s s
 src/app/                 Pantallas y API routes
 src/lib/ai/model.ts      Cadena de modelos de IA: Bedrock → Gemini
 src/lib/agente/          Herramientas del agente y prompt de sistema
-src/lib/semaforo/        Motor de reglas + auditoría con IA de los casos dudosos
+src/lib/semaforo/        Motor de reglas, auditoría con IA de los casos dudosos y lectura de cartas (foto/texto)
 src/lib/restricciones.ts Restricciones soportadas y firma de perfil
 src/lib/supabase/        Clientes (navegador / servidor) y tipos
 supabase/migrations/     Esquema SQL versionado
@@ -204,7 +205,7 @@ scripts/                 Comprobación de la BD y pruebas de reglas y agente
 - [x] **Fase 1:** esquema Supabase + datos de demo
 - [x] **Fase 2:** agente con las 4 herramientas (`/api/chat`) + motor de reglas del semáforo
 - [x] **Fase 3:** Modo 1: configurador de grupo + resultados en lista y mapa, con el progreso del agente en vivo
-- [ ] **Fase 4:** Modo 2: ficha del local con carta semáforo + "pegar carta"
+- [x] **Fase 4:** Modo 2 (foto de la carta, texto pegado o restaurante de la lista) + ficha del local con carta semáforo y "Confirmar elección"
 - [ ] **Fase 5:** memoria colectiva + búsqueda semántica (RAG)
 - [ ] **Fase 6:** despliegue en Vercel
 

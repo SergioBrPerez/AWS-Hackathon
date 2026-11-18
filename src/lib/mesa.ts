@@ -40,9 +40,20 @@ export function resumenMesa(m: Mesa) {
   return `${n} ${n === 1 ? "comensal" : "comensales"}${r.length ? ` · ${r.join(", ")}` : ""} · ${PRECIO[m.presupuesto]}`;
 }
 
+/** Perfiles para las APIs, con nombres únicos (la auditoría los usa como clave). */
+export function perfilesDeMesa(m: Mesa) {
+  const vistos = new Map<string, number>();
+  return m.comensales.map((c, i) => {
+    const base = c.nombre.trim() || `Comensal ${i + 1}`;
+    const n = (vistos.get(base) ?? 0) + 1;
+    vistos.set(base, n);
+    return { nombre: n > 1 ? `${base} (${n})` : base, restricciones: c.restricciones };
+  });
+}
+
 /** Mensaje en lenguaje natural + datos exactos para el agente. */
 export function mesaAPrompt(m: Mesa) {
-  const lineas = m.comensales.map((c) =>
+  const lineas = perfilesDeMesa(m).map((c) =>
     `- ${c.nombre}: ${c.restricciones.length ? c.restricciones.join(", ") : "sin restricciones"}`);
   return [
     `Somos ${m.comensales.length} ${m.comensales.length === 1 ? "persona" : "personas"}:`,

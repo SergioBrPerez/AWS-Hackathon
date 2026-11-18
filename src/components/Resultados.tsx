@@ -3,6 +3,7 @@
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import type { AgenteMessage } from "@/lib/agente/tipos";
@@ -425,6 +426,11 @@ function Tarjeta({ auditoria: a, candidato: c, experiencia: e, nota, distanciaKm
           )}
         </div>
       )}
+
+      <Link href={`/restaurante/${a.restaurante_id}`} className="flex w-full items-center justify-between border-t border-line px-4 py-3 text-sm font-medium">
+        🚦 Abrir carta semáforo completa
+        <span aria-hidden>→</span>
+      </Link>
 
       <div className="border-t border-line p-3">
         <button onClick={onElegir} disabled={deshabilitado} className="w-full rounded-xl bg-brand py-2.5 text-sm font-semibold text-white disabled:opacity-40">

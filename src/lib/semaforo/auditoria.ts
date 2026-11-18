@@ -60,9 +60,14 @@ const PROMPT_IA = `Eres un auditor de seguridad alimentaria. Clasifica cada caso
 
 Reglas:
 - Si no hay ingredientes, infiere los habituales de la receta tradicional y decide con ellos.
-- Embarazo: evitar lácteos sin pasteurizar, carne/pescado crudo o poco hecho, embutidos curados sin cocinar, huevo crudo o poco cocinado, alcohol que no se evapora, paté y foie. Embutido cocinado a alta temperatura (p.ej. chorizo a la plancha) es aceptable.
+- Embarazo: evitar lácteos sin pasteurizar, carne/pescado crudo o poco hecho, embutidos curados sin cocinar, huevo crudo o poco cocinado, alcohol que no se evapora, paté y foie. Embutido cocinado a alta temperatura (p.ej. chorizo a la plancha) es aceptable. Huevo frito, poché o a baja temperatura suele llevar la yema líquida: amarillo con "Pedir el huevo bien hecho, con la yema cuajada".
+- Si el riesgo depende de algo que no consta (tipo de caldo, si el queso es pasteurizado, si lleva vino) y NO es una alergia grave, elige amarillo con la pregunta concreta para el camarero ("Preguntar si el caldo es de verduras").
 - Ante una duda real sobre alergias graves (gluten, frutos secos, marisco), elige rojo. La contaminación cruzada (freidora compartida, trazas) cuenta como riesgo real para celíacos y alérgicos.
-- Sé conservador: nunca verde si dudas.`;
+- Sé conservador: nunca verde si dudas.
+- Si el plato no trae nota_cocina, no sabes qué admite esa cocina: formula la instrucción de los amarillos como pregunta al camarero ("Preguntar si pueden servirlo sin chorizo") y solo cuando retirar el ingrediente sea razonable (guarnición, topping, salsa aparte).`;
+
+/** Casos (plato × comensal) por llamada a la IA; los lotes van en paralelo. */
+const TAM_LOTE = 8;
 
 /** Caché en memoria para no repetir llamadas idénticas (útil en la demo). */
 const cache = new Map<string, z.infer<typeof clasificacionIA>["resultados"][number]>();
@@ -77,6 +82,12 @@ export async function auditarCarta(platos: Plato[], perfiles: Perfil[]): Promise
     for (const plato of platos) {
       const clave = `${plato.id}|${perfil.nombre}`;
       const r = evaluarPlato(plato, perfil.restricciones);
+      // Carta externa (foto o texto): los ingredientes escritos son solo una parte
+      // de la receta, así que lo que las reglas dan por bueno lo revisa también la IA.
+      if (plato.restaurante_id === "externo" && r.estado === "verde" && perfil.restricciones.length) {
+        r.estado = "dudoso";
+        r.pistas.push("Carta externa: la lista de ingredientes puede estar incompleta. Deduce la receta tradicional completa (p.ej. el salmorejo lleva pan) y cómo se elabora (p.ej. huevo frito con yema líquida, mousse con huevo crudo).");
+      }
       const base = { plato_id: plato.id, plato: plato.nombre, categoria: plato.categoria, fuente: "reglas" as const };
       if (r.estado === "dudoso") {
         const cacheKey = `${plato.id}|${[...perfil.restricciones].sort().join("+")}`;
@@ -93,38 +104,46 @@ export async function auditarCarta(platos: Plato[], perfiles: Perfil[]): Promise
     }
   }
 
-  // Capa 2: IA solo para los dudosos, en una única llamada
+  // Capa 2: IA solo para los dudosos, en lotes pequeños EN PARALELO (más rápido
+  // que una única llamada enorme, y si un lote falla los demás siguen valiendo)
   let llamadas = 0;
   if (dudosos.length) {
-    llamadas = 1;
-    const casos = dudosos.map((d) => ({
-      clave: d.clave,
-      plato: d.plato.nombre,
-      descripcion: d.plato.descripcion,
-      ingredientes: d.plato.ingredientes,
-      alergenos_declarados: d.plato.alergenos_declarados,
-      permite_modificacion: d.plato.permite_modificacion,
-      nota_cocina: d.plato.nota_cocina,
-      restricciones_comensal: d.perfil.restricciones,
-      conflictos_detectados: d.conflictos,
-      pistas: d.pistas,
-    }));
-    try {
-      const { output } = await generateText({
-        model: getModel(),
-        output: Output.object({ schema: clasificacionIA }),
-        system: PROMPT_IA,
-        prompt: `Clasifica estos ${casos.length} casos. Devuelve un resultado por clave.\n${JSON.stringify(casos)}`,
-      });
-      for (const res of output.resultados) {
-        const d = dudosos.find((x) => x.clave === res.clave);
-        if (!d) continue;
-        cache.set(`${d.plato.id}|${[...d.perfil.restricciones].sort().join("+")}`, res);
-        veredictos.set(d.clave, aVeredicto({ plato_id: d.plato.id, plato: d.plato.nombre, categoria: d.plato.categoria, fuente: "ia" }, res));
-      }
-    } catch (e) {
-      console.error("[auditoria] fallo de la IA, se marcan como no recomendados:", e);
-    }
+    const lotes: Caso[][] = [];
+    for (let i = 0; i < dudosos.length; i += TAM_LOTE) lotes.push(dudosos.slice(i, i + TAM_LOTE));
+    llamadas = lotes.length;
+
+    await Promise.all(
+      lotes.map(async (lote) => {
+        const casos = lote.map((d) => ({
+          clave: d.clave,
+          plato: d.plato.nombre,
+          descripcion: d.plato.descripcion,
+          ingredientes: d.plato.ingredientes,
+          alergenos_declarados: d.plato.alergenos_declarados,
+          permite_modificacion: d.plato.permite_modificacion,
+          nota_cocina: d.plato.nota_cocina,
+          restricciones_comensal: d.perfil.restricciones,
+          conflictos_detectados: d.conflictos,
+          pistas: d.pistas,
+        }));
+        try {
+          const { output } = await generateText({
+            model: getModel(),
+            output: Output.object({ schema: clasificacionIA }),
+            system: PROMPT_IA,
+            prompt: `Clasifica estos ${casos.length} casos. Devuelve un resultado por clave.\n${JSON.stringify(casos)}`,
+          });
+          for (const res of output.resultados) {
+            const d = lote.find((x) => x.clave === res.clave);
+            if (!d) continue;
+            cache.set(`${d.plato.id}|${[...d.perfil.restricciones].sort().join("+")}`, res);
+            veredictos.set(d.clave, aVeredicto({ plato_id: d.plato.id, plato: d.plato.nombre, categoria: d.plato.categoria, fuente: "ia" }, res));
+          }
+        } catch (e) {
+          console.error("[auditoria] fallo de la IA en un lote, sus platos se marcan como no recomendados:", e);
+        }
+      }),
+    );
     // Lo que la IA no haya devuelto (o si falló) se queda en rojo por seguridad
     for (const d of dudosos) {
       if (!veredictos.has(d.clave)) {

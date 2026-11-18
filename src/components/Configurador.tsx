@@ -15,7 +15,11 @@ const ICONO: Record<Restriccion, string> = {
 };
 
 /** Pantalla 2 del diseño: configurador de perfil / grupo. */
-export function Configurador({ mesa, onChange, onBuscar }: { mesa: Mesa; onChange: (m: Mesa) => void; onBuscar: () => void }) {
+export function Configurador({ mesa, onChange, onBuscar, modo = "buscar", textoBoton = "Buscar restaurantes" }: {
+  mesa: Mesa; onChange: (m: Mesa) => void; onBuscar: () => void;
+  /** "mesa" (Modo 2) oculta presupuesto y preferencias: ya estáis en el restaurante */
+  modo?: "buscar" | "mesa"; textoBoton?: string;
+}) {
   const [activo, setActivo] = useState(mesa.comensales[0]?.id);
   const actual = mesa.comensales.find((c) => c.id === activo) ?? mesa.comensales[0];
 
@@ -97,6 +101,7 @@ export function Configurador({ mesa, onChange, onBuscar }: { mesa: Mesa; onChang
         </div>
       </section>
 
+      {modo === "buscar" && (<>
       {/* Presupuesto */}
       <section>
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted">Presupuesto</h2>
@@ -127,10 +132,11 @@ export function Configurador({ mesa, onChange, onBuscar }: { mesa: Mesa; onChang
           className="w-full rounded-2xl border border-line bg-card p-3 text-base"
         />
       </section>
+      </>)}
 
       <div className="fixed inset-x-0 bottom-0 border-t border-line bg-background/95 px-4 pt-3 backdrop-blur" style={{ paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))" }}>
         <button onClick={onBuscar} className="mx-auto block w-full max-w-md rounded-2xl bg-brand py-4 text-base font-semibold text-white shadow-sm active:scale-[0.99]">
-          Buscar restaurantes
+          {textoBoton}
         </button>
       </div>
     </div>

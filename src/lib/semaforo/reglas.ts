@@ -182,7 +182,7 @@ export function evaluarPlato(plato: Plato, restricciones: Restriccion[]): Result
 
   // Modificable pero las reglas no saben si basta → que lo valore la IA
   if (plato.permite_modificacion) {
-    return { estado: "dudoso", conflictos: unicos, pistas: [...pistas, "El plato admite modificaciones; valorar si quitar el ingrediente lo hace apto o si es estructural."] };
+    return { estado: "dudoso", conflictos: unicos, pistas: [...pistas, plato.nota_cocina ? "El plato admite modificaciones; valorar si quitar el ingrediente lo hace apto o si es estructural." : "Carta externa: no se sabe qué admite la cocina; valorar si el ingrediente es retirable (guarnición, topping, salsa) o estructural."] };
   }
 
   return { estado: "rojo", conflictos: unicos, pistas };
