@@ -182,7 +182,7 @@ cp .env.example .env.local     # rellenar (ver comentarios dentro del archivo)
 > **Limitación conocida:** `gte-small` está entrenado sobre todo en inglés. Acierta muy bien con conceptos concretos ("ramen" encuentra Sushi Kaze por su *Ramen tonkotsu*; "quesos franceses", Le Petit Fromage), pero flojea con expresiones muy españolas o abstractas ("comida de cuchara"). El agente lo compensa porque lee las descripciones antes de recomendar.
 
 ```bash
-npm run db:check      # comprueba claves, tablas y datos
+npm run db:check      # comprueba claves, tablas, funciones y embeddings
 npm run ia:check      # qué modelos de IA responden (Bedrock / Gemini) y cuánto tardan
 npm run test:reglas   # prueba el motor de reglas del semáforo (sin IA)
 npm run agente -- "Somos 2: Ana celíaca y Bea vegana, presupuesto €"   # habla con el agente
@@ -253,6 +253,7 @@ scripts/                   Comprobaciones, pruebas, embeddings y comparativa de 
    | `AWS_REGION`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN`, `BEDROCK_MODEL_ID` | Opcionales | Temporales: cuando caducan, la app pasa sola a Gemini. Para renovarlas, actualízalas en Vercel y haz **Redeploy** |
 
 3. Pulsa **Deploy**. Cada `git push` a `main` vuelve a desplegar.
+4. Abre **`https://<tu-app>.vercel.app/api/estado`**: dice qué servicios funcionan (Supabase, búsqueda semántica, Bedrock, Gemini) sin mostrar ninguna clave. También funciona en local: `http://localhost:3000/api/estado`.
 
 Las rutas de IA tienen un límite de 60 s (`maxDuration`), suficiente para el agente (~15-40 s) y para leer una foto de carta.
 
