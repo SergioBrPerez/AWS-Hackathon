@@ -1,6 +1,6 @@
 -- =====================================================================
 -- Agent Locally · Datos de demo (Fase 1)
--- Restaurantes FICTICIOS en Madrid. Ejecutar DESPUÉS de la migración
+-- Restaurantes FICTICIOS en Madrid centro (todos a ~1 km de Sol). Ejecutar DESPUÉS de la migración
 -- 0001_esquema_inicial.sql. Es re-ejecutable: borra y recrea la demo.
 --
 -- Casos de prueba incluidos a propósito:
@@ -19,15 +19,15 @@ insert into public.restaurantes (id, nombre, tipo_cocina, rango_precio, direccio
 ('00000000-0000-4000-a000-000000000001','Trattoria Nonna Lucia','italiana',2,'Calle de Santa Isabel 12, Madrid',40.4108,-3.6985,'Pasta fresca casera, pizzas al horno de leña y postres clásicos italianos.',false),
 ('00000000-0000-4000-a000-000000000002','La Tasca de Embajadores','tapas',1,'Calle de Embajadores 41, Madrid',40.4072,-3.7025,'Tapas tradicionales madrileñas, raciones para compartir y ambiente de barrio.',false),
 ('00000000-0000-4000-a000-000000000003','Verde Raíz','vegana',2,'Calle de la Palma 20, Madrid',40.4262,-3.7058,'Cocina 100% vegetal de temporada, bowls y hamburguesas plant-based.',false),
-('00000000-0000-4000-a000-000000000004','Sushi Kaze','japonesa',3,'Calle de Ponzano 33, Madrid',40.4415,-3.7035,'Barra de sushi, ramen y platos calientes japoneses.',false),
-('00000000-0000-4000-a000-000000000005','Asador El Roble','asador',3,'Calle de Velázquez 62, Madrid',40.4280,-3.6835,'Carnes a la brasa de encina, chuletón madurado y verduras asadas.',false),
-('00000000-0000-4000-a000-000000000006','Sin Trigo Bistró','sin gluten',2,'Calle Madrid 45, Getafe',40.3168,-3.7262,'Bistró con cocina 100% libre de gluten certificada, cerca del campus de Getafe.',false),
+('00000000-0000-4000-a000-000000000004','Sushi Kaze','japonesa',3,'Calle de las Huertas 30, Madrid',40.4141,-3.6991,'Barra de sushi, ramen y platos calientes japoneses.',false),
+('00000000-0000-4000-a000-000000000005','Asador El Roble','asador',3,'Calle Mayor 52, Madrid',40.4154,-3.7108,'Carnes a la brasa de encina, chuletón madurado y verduras asadas.',false),
+('00000000-0000-4000-a000-000000000006','Sin Trigo Bistró','sin gluten',2,'Calle de la Cava Baja 22, Madrid',40.4118,-3.7086,'Bistró con cocina 100% libre de gluten certificada, en pleno barrio de La Latina.',false),
 ('00000000-0000-4000-a000-000000000007','Taquería La Lupita','mexicana',1,'Calle de Fuencarral 98, Madrid',40.4258,-3.7012,'Tacos, quesadillas y antojitos mexicanos con salsas picantes caseras.',false),
 ('00000000-0000-4000-a000-000000000008','Mercado Mediterráneo','mediterránea',2,'Calle de Atocha 70, Madrid',40.4118,-3.6985,'Cocina griega, libanesa y española con mucho producto vegetal.',true),
-('00000000-0000-4000-a000-000000000009','Casa Pepa','casera',1,'Avenida de la Universidad 18, Leganés',40.3328,-3.7655,'Menú del día casero y guisos tradicionales, junto al campus de Leganés.',false),
+('00000000-0000-4000-a000-000000000009','Casa Pepa','casera',1,'Calle de la Montera 30, Madrid',40.4196,-3.7019,'Menú del día casero y guisos tradicionales, a dos pasos de Gran Vía.',false),
 ('00000000-0000-4000-a000-000000000010','Curry Garden','india',2,'Calle del Ave María 25, Madrid',40.4110,-3.7010,'Currys del norte de la India, tandoor y opciones vegetarianas.',false),
-('00000000-0000-4000-a000-000000000011','Le Petit Fromage','francesa',3,'Calle de Serrano 88, Madrid',40.4335,-3.6870,'Bistró francés con tabla de quesos artesanos, patés y cocina clásica.',false),
-('00000000-0000-4000-a000-000000000012','Poke Bahía','poke',2,'Calle de Toledo 110, Madrid',40.4060,-3.7110,'Pokes personalizables de pescado, tofu y pollo.',false);
+('00000000-0000-4000-a000-000000000011','Le Petit Fromage','francesa',3,'Calle de Hortaleza 30, Madrid',40.4214,-3.6986,'Bistró francés con tabla de quesos artesanos, patés y cocina clásica.',false),
+('00000000-0000-4000-a000-000000000012','Poke Bahía','poke',2,'Calle de Toledo 60, Madrid',40.4094,-3.7093,'Pokes personalizables de pescado, tofu y pollo.',false);
 
 insert into public.platos (restaurante_id, nombre, categoria, descripcion, precio, ingredientes, alergenos_declarados, permite_modificacion, nota_cocina) values
 -- 01 · Trattoria Nonna Lucia

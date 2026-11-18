@@ -30,6 +30,9 @@ export function cargarMesa(): Mesa | null {
 
 export const PRECIO = ["", "€", "€€", "€€€"] as const;
 
+/** Punto de partida por defecto para distancias y mapa (no se pide la ubicación). */
+export const UBICACION = { nombre: "Puerta del Sol", coords: [40.4169, -3.7035] as [number, number] };
+
 /** Resumen corto, p.ej. "3 comensales · Sin gluten, Embarazo · €€" */
 export function resumenMesa(m: Mesa) {
   const r = [...new Set(m.comensales.flatMap((c) => c.restricciones))].map((x) => ETIQUETAS[x]);
