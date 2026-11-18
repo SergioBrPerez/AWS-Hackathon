@@ -1,0 +1,508 @@
+{
+  "fecha": "2026-11-18T19:12:29.114Z",
+  "resumen": [
+    {
+      "modelo": "Claude Opus 5.5 (Bedrock)",
+      "A semáforo s": 22.9,
+      "A aciertos %": 96,
+      "A peligrosos": 0,
+      "B agente s": 38.4,
+      "B formato %": 100,
+      "C foto s": 7.8,
+      "C lectura %": 100,
+      "calidad %": 98,
+      "A sin respuesta": 0,
+      "fallos": 0,
+      "detallePeligrosos": []
+    },
+    {
+      "modelo": "Claude Sonnet 5.5 (Bedrock)",
+      "A semáforo s": 11.1,
+      "A aciertos %": 96,
+      "A peligrosos": 0,
+      "B agente s": 31,
+      "B formato %": 100,
+      "C foto s": 6.8,
+      "C lectura %": 100,
+      "calidad %": 98,
+      "A sin respuesta": 0,
+      "fallos": 0,
+      "detallePeligrosos": []
+    },
+    {
+      "modelo": "Claude Haiku 5.5 (Bedrock)",
+      "A semáforo s": 22.7,
+      "A aciertos %": 94,
+      "A peligrosos": 0,
+      "B agente s": 29.4,
+      "B formato %": 100,
+      "C foto s": 4,
+      "C lectura %": 100,
+      "calidad %": 96,
+      "A sin respuesta": 0,
+      "fallos": 0,
+      "detallePeligrosos": []
+    },
+    {
+      "modelo": "Amazon Nova Pro (Bedrock)",
+      "A semáforo s": 12,
+      "A aciertos %": 78,
+      "A peligrosos": 1,
+      "B agente s": 16.7,
+      "B formato %": 100,
+      "C foto s": 4.6,
+      "C lectura %": 94,
+      "calidad %": 86,
+      "A sin respuesta": 11,
+      "fallos": 0,
+      "detallePeligrosos": [
+        "Rabo de toro/sin_gluten"
+      ]
+    },
+    {
+      "modelo": "Amazon Nova 2 Lite (Bedrock)",
+      "A semáforo s": 3.6,
+      "A aciertos %": 85,
+      "A peligrosos": 2,
+      "B agente s": 11.8,
+      "B formato %": 83,
+      "C foto s": 3.5,
+      "C lectura %": 100,
+      "calidad %": 87,
+      "A sin respuesta": 0,
+      "fallos": 0,
+      "detallePeligrosos": [
+        "Rabo de toro/sin_gluten"
+      ]
+    },
+    {
+      "modelo": "Gemini 3.5 Flash",
+      "A semáforo s": 6.9,
+      "A aciertos %": null,
+      "A peligrosos": 0,
+      "B agente s": null,
+      "B formato %": null,
+      "C foto s": null,
+      "C lectura %": null,
+      "calidad %": null,
+      "A sin respuesta": 48,
+      "fallos": 4,
+      "detallePeligrosos": []
+    },
+    {
+      "modelo": "Gemini 3.5 Flash Lite",
+      "A semáforo s": 19.9,
+      "A aciertos %": 92,
+      "A peligrosos": 0,
+      "B agente s": 28.9,
+      "B formato %": 100,
+      "C foto s": 2.4,
+      "C lectura %": 100,
+      "calidad %": 95,
+      "A sin respuesta": 16,
+      "fallos": 0,
+      "detallePeligrosos": []
+    },
+    {
+      "modelo": "Gemini 3.1 Flash Lite",
+      "A semáforo s": 20.5,
+      "A aciertos %": 92,
+      "A peligrosos": 0,
+      "B agente s": 24.6,
+      "B formato %": 100,
+      "C foto s": 12.9,
+      "C lectura %": 100,
+      "calidad %": 95,
+      "A sin respuesta": 0,
+      "fallos": 0,
+      "detallePeligrosos": []
+    }
+  ],
+  "detalle": [
+    {
+      "modelo": "Claude Opus 5.5 (Bedrock)",
+      "A": [
+        {
+          "tiempo": 23.129,
+          "aciertos": 23,
+          "total": 24,
+          "peligrosos": [],
+          "conservador": 2,
+          "sinVeredictoIA": 0
+        },
+        {
+          "tiempo": 22.718,
+          "aciertos": 23,
+          "total": 24,
+          "peligrosos": [],
+          "conservador": 2,
+          "sinVeredictoIA": 0
+        }
+      ],
+      "B": [
+        {
+          "tiempo": 40.162,
+          "pasos": 3,
+          "formato": 6,
+          "formatoTotal": 6
+        },
+        {
+          "tiempo": 36.673,
+          "pasos": 3,
+          "formato": 6,
+          "formatoTotal": 6
+        }
+      ],
+      "C": [
+        {
+          "tiempo": 7.762,
+          "platos": 8,
+          "total": 8,
+          "precios": 8
+        },
+        {
+          "tiempo": 7.814,
+          "platos": 8,
+          "total": 8,
+          "precios": 8
+        }
+      ],
+      "fallos": []
+    },
+    {
+      "modelo": "Claude Sonnet 5.5 (Bedrock)",
+      "A": [
+        {
+          "tiempo": 12.046,
+          "aciertos": 23,
+          "total": 24,
+          "peligrosos": [],
+          "conservador": 2,
+          "sinVeredictoIA": 0
+        },
+        {
+          "tiempo": 10.222,
+          "aciertos": 23,
+          "total": 24,
+          "peligrosos": [],
+          "conservador": 2,
+          "sinVeredictoIA": 0
+        }
+      ],
+      "B": [
+        {
+          "tiempo": 34.69,
+          "pasos": 3,
+          "formato": 6,
+          "formatoTotal": 6
+        },
+        {
+          "tiempo": 27.345,
+          "pasos": 3,
+          "formato": 6,
+          "formatoTotal": 6
+        }
+      ],
+      "C": [
+        {
+          "tiempo": 7.21,
+          "platos": 8,
+          "total": 8,
+          "precios": 8
+        },
+        {
+          "tiempo": 6.413,
+          "platos": 8,
+          "total": 8,
+          "precios": 8
+        }
+      ],
+      "fallos": []
+    },
+    {
+      "modelo": "Claude Haiku 5.5 (Bedrock)",
+      "A": [
+        {
+          "tiempo": 18.47,
+          "aciertos": 22,
+          "total": 24,
+          "peligrosos": [],
+          "conservador": 3,
+          "sinVeredictoIA": 0
+        },
+        {
+          "tiempo": 26.957,
+          "aciertos": 23,
+          "total": 24,
+          "peligrosos": [],
+          "conservador": 2,
+          "sinVeredictoIA": 0
+        }
+      ],
+      "B": [
+        {
+          "tiempo": 29.264,
+          "pasos": 3,
+          "formato": 6,
+          "formatoTotal": 6
+        },
+        {
+          "tiempo": 29.461,
+          "pasos": 3,
+          "formato": 6,
+          "formatoTotal": 6
+        }
+      ],
+      "C": [
+        {
+          "tiempo": 4.017,
+          "platos": 8,
+          "total": 8,
+          "precios": 8
+        },
+        {
+          "tiempo": 4.051,
+          "platos": 8,
+          "total": 8,
+          "precios": 8
+        }
+      ],
+      "fallos": []
+    },
+    {
+      "modelo": "Amazon Nova Pro (Bedrock)",
+      "A": [
+        {
+          "tiempo": 6.706,
+          "aciertos": 21,
+          "total": 24,
+          "peligrosos": [],
+          "conservador": 1,
+          "sinVeredictoIA": 0
+        },
+        {
+          "tiempo": 17.265,
+          "aciertos": 9,
+          "total": 13,
+          "peligrosos": [
+            "Rabo de toro/sin_gluten"
+          ],
+          "conservador": 1,
+          "sinVeredictoIA": 11
+        }
+      ],
+      "B": [
+        {
+          "tiempo": 21.523,
+          "pasos": 3,
+          "formato": 6,
+          "formatoTotal": 6
+        },
+        {
+          "tiempo": 11.878,
+          "pasos": 3,
+          "formato": 6,
+          "formatoTotal": 6
+        }
+      ],
+      "C": [
+        {
+          "tiempo": 4.424,
+          "platos": 7,
+          "total": 8,
+          "precios": 7
+        },
+        {
+          "tiempo": 4.71,
+          "platos": 8,
+          "total": 8,
+          "precios": 8
+        }
+      ],
+      "fallos": []
+    },
+    {
+      "modelo": "Amazon Nova 2 Lite (Bedrock)",
+      "A": [
+        {
+          "tiempo": 3.739,
+          "aciertos": 21,
+          "total": 24,
+          "peligrosos": [
+            "Rabo de toro/sin_gluten"
+          ],
+          "conservador": 2,
+          "sinVeredictoIA": 0
+        },
+        {
+          "tiempo": 3.55,
+          "aciertos": 20,
+          "total": 24,
+          "peligrosos": [
+            "Rabo de toro/sin_gluten"
+          ],
+          "conservador": 1,
+          "sinVeredictoIA": 0
+        }
+      ],
+      "B": [
+        {
+          "tiempo": 9.096,
+          "pasos": 4,
+          "formato": 6,
+          "formatoTotal": 6
+        },
+        {
+          "tiempo": 14.486,
+          "pasos": 6,
+          "formato": 4,
+          "formatoTotal": 6
+        }
+      ],
+      "C": [
+        {
+          "tiempo": 3.441,
+          "platos": 8,
+          "total": 8,
+          "precios": 8
+        },
+        {
+          "tiempo": 3.497,
+          "platos": 8,
+          "total": 8,
+          "precios": 8
+        }
+      ],
+      "fallos": []
+    },
+    {
+      "modelo": "Gemini 3.5 Flash",
+      "A": [
+        {
+          "tiempo": 7.3,
+          "aciertos": 0,
+          "total": 0,
+          "peligrosos": [],
+          "conservador": 0,
+          "sinVeredictoIA": 24
+        },
+        {
+          "tiempo": 6.583,
+          "aciertos": 0,
+          "total": 0,
+          "peligrosos": [],
+          "conservador": 0,
+          "sinVeredictoIA": 24
+        }
+      ],
+      "B": [],
+      "C": [],
+      "fallos": [
+        "B1: Failed after 3 attempts. Last error: AI_APICallError: You exceeded your current quota, ple",
+        "C1: Failed after 3 attempts. Last error: AI_APICallError: You exceeded your current quota, ple",
+        "B2: Failed after 3 attempts. Last error: AI_APICallError: You exceeded your current quota, ple",
+        "C2: Failed after 3 attempts. Last error: AI_APICallError: You exceeded your current quota, ple"
+      ]
+    },
+    {
+      "modelo": "Gemini 3.5 Flash Lite",
+      "A": [
+        {
+          "tiempo": 21.718,
+          "aciertos": 23,
+          "total": 24,
+          "peligrosos": [],
+          "conservador": 0,
+          "sinVeredictoIA": 0
+        },
+        {
+          "tiempo": 17.989,
+          "aciertos": 7,
+          "total": 8,
+          "peligrosos": [],
+          "conservador": 0,
+          "sinVeredictoIA": 16
+        }
+      ],
+      "B": [
+        {
+          "tiempo": 24.785,
+          "pasos": 3,
+          "formato": 6,
+          "formatoTotal": 6
+        },
+        {
+          "tiempo": 33.066,
+          "pasos": 3,
+          "formato": 6,
+          "formatoTotal": 6
+        }
+      ],
+      "C": [
+        {
+          "tiempo": 2.184,
+          "platos": 8,
+          "total": 8,
+          "precios": 8
+        },
+        {
+          "tiempo": 2.674,
+          "platos": 8,
+          "total": 8,
+          "precios": 8
+        }
+      ],
+      "fallos": []
+    },
+    {
+      "modelo": "Gemini 3.1 Flash Lite",
+      "A": [
+        {
+          "tiempo": 35.633,
+          "aciertos": 22,
+          "total": 24,
+          "peligrosos": [],
+          "conservador": 2,
+          "sinVeredictoIA": 0
+        },
+        {
+          "tiempo": 5.402,
+          "aciertos": 22,
+          "total": 24,
+          "peligrosos": [],
+          "conservador": 2,
+          "sinVeredictoIA": 0
+        }
+      ],
+      "B": [
+        {
+          "tiempo": 23.782,
+          "pasos": 3,
+          "formato": 6,
+          "formatoTotal": 6
+        },
+        {
+          "tiempo": 25.429,
+          "pasos": 3,
+          "formato": 6,
+          "formatoTotal": 6
+        }
+      ],
+      "C": [
+        {
+          "tiempo": 16.658,
+          "platos": 8,
+          "total": 8,
+          "precios": 8
+        },
+        {
+          "tiempo": 9.166,
+          "platos": 8,
+          "total": 8,
+          "precios": 8
+        }
+      ],
+      "fallos": []
+    }
+  ]
+}

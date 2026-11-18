@@ -15,7 +15,14 @@ const TIMEOUT_S = Number(process.env.AI_TIMEOUT_S ?? process.env.GEMINI_TIMEOUT_
  *
  * AI_PROVIDER=google fuerza usar solo Gemini (útil para ahorrar crédito de AWS).
  */
+/** Solo para pruebas comparativas: fuerza un modelo concreto, sin cadena de respaldo. */
+let modeloForzado: LanguageModel | null = null;
+export function forzarModelo(m: LanguageModel | null) {
+  modeloForzado = m;
+}
+
 export function getModel(): LanguageModel {
+  if (modeloForzado) return modeloForzado;
   const cadena = [...modelosBedrock(), ...modelosGemini()];
   if (cadena.length === 0) throw new Error("No hay ningún modelo de IA configurado: revisa .env.local");
   return wrapLanguageModel({ model: cadena[0], middleware: cadenaDeRespaldo(cadena) });
@@ -30,7 +37,7 @@ function modelosBedrock(): LanguageModelV4[] {
     secretAccessKey: e.AWS_SECRET_ACCESS_KEY,
     sessionToken: e.AWS_SESSION_TOKEN || undefined,
   });
-  return [bedrock(e.BEDROCK_MODEL_ID ?? "us.anthropic.claude-opus-5-5")];
+  return [bedrock(e.BEDROCK_MODEL_ID ?? "us.anthropic.claude-sonnet-5-5")];
 }
 
 function modelosGemini(): LanguageModelV4[] {
@@ -38,8 +45,8 @@ function modelosGemini(): LanguageModelV4[] {
   if (!e.GOOGLE_GENERATIVE_AI_API_KEY) return [];
   const google = createGoogleGenerativeAI({ apiKey: e.GOOGLE_GENERATIVE_AI_API_KEY });
   const ids = [
-    e.GEMINI_MODEL_ID ?? "gemini-3.5-flash",
-    ...(e.GEMINI_FALLBACK_MODELS ?? "gemini-3.5-flash-lite,gemini-3.1-flash-lite").split(","),
+    e.GEMINI_MODEL_ID ?? "gemini-3.5-flash-lite",
+    ...(e.GEMINI_FALLBACK_MODELS ?? "gemini-3.1-flash-lite").split(","),
   ].map((s) => s.trim()).filter(Boolean);
   return [...new Set(ids)].map((id) => google(id));
 }

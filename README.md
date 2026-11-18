@@ -185,6 +185,23 @@ La app prueba los modelos **en orden** y salta al siguiente si uno falla (creden
 
 Un modelo que falla se salta durante un rato (10 min si son credenciales, 30 s si es saturación). `npm run ia:check` muestra qué modelos responden ahora mismo.
 
+#### ¿Por qué estos modelos? (`npm run benchmark`)
+
+Comparamos 8 modelos en las 3 tareas de la app, con 2 repeticiones. **A**: semáforo de 24 casos difíciles con respuesta conocida. **B**: búsqueda de grupo completa con el agente. **C**: lectura de una foto de carta. Resultados (18/11/2026):
+
+| Modelo | Semáforo | Aciertos | Errores peligrosos* | Agente | Foto |
+|---|---|---|---|---|---|
+| **Claude Sonnet 5.5** ✅ principal | 11 s | 96 % | 0 | 31 s | 6,8 s |
+| Claude Opus 5.5 | 23 s | 96 % | 0 | 38 s | 7,8 s |
+| Claude Haiku 5.5 | 23 s | 94 % | 0 | 29 s | 4,0 s |
+| **Gemini 3.5 Flash Lite** ✅ respaldo | 20 s | 92 % | 0 | 29 s | 2,4 s |
+| **Gemini 3.1 Flash Lite** ✅ 2º respaldo | 21 s | 92 % | 0 | 25 s | 12,9 s |
+| Amazon Nova 2 Lite | 3,6 s | 85 % | 2 | 12 s | 3,5 s |
+| Amazon Nova Pro | 12 s | 78 % | 1 | 17 s | 4,6 s |
+| Gemini 3.5 Flash | — | — | — | — | — (cuota gratuita agotada) |
+
+\* *Error peligroso*: marcar 🟢 un plato que no es apto (p. ej. los Nova dieron por bueno el rabo de toro, cuya salsa suele llevar harina, a una persona celíaca). En una app de alergias, un solo error así descarta el modelo, por rápido que sea.
+
 ### Estructura del repo
 
 ```

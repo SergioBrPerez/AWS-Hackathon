@@ -72,6 +72,9 @@ const TAM_LOTE = 8;
 /** Caché en memoria para no repetir llamadas idénticas (útil en la demo). */
 const cache = new Map<string, z.infer<typeof clasificacionIA>["resultados"][number]>();
 
+/** Vacía la caché (para pruebas comparativas entre modelos). */
+export const limpiarCacheAuditoria = () => cache.clear();
+
 export async function auditarCarta(platos: Plato[], perfiles: Perfil[]): Promise<AuditoriaGrupo> {
   type Caso = { clave: string; plato: Plato; perfil: Perfil; conflictos: Conflicto[]; pistas: string[] };
   const dudosos: Caso[] = [];
