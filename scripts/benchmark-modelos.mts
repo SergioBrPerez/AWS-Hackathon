@@ -227,7 +227,7 @@ const resumen = tabla.map((f) => {
 });
 
 console.log("\n📊 RESUMEN (medias)\n");
-console.table(resumen.map(({ detallePeligrosos: _d, ...r }) => r));
+console.table(resumen.map((r) => Object.fromEntries(Object.entries(r).filter(([k]) => k !== "detallePeligrosos"))));
 for (const r of resumen) if (r.detallePeligrosos.length) console.log(`⚠️  ${r.modelo} dio 🟢 a: ${r.detallePeligrosos.join(", ")}`);
 
 writeFileSync("scripts/fixtures/benchmark-resultados.json", JSON.stringify({ fecha: new Date().toISOString(), resumen, detalle: tabla }, null, 2));

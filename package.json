@@ -12,7 +12,9 @@
     "agente": "node --env-file=.env.local --conditions=react-server --import tsx scripts/probar-agente.mts",
     "ia:check": "node --env-file=.env.local --import tsx scripts/check-ia.mts",
     "carta": "node --env-file=.env.local --conditions=react-server --import tsx scripts/probar-carta.mts",
-    "benchmark": "node --env-file=.env.local --conditions=react-server --import tsx scripts/benchmark-modelos.mts"
+    "benchmark": "node --env-file=.env.local --conditions=react-server --import tsx scripts/benchmark-modelos.mts",
+    "embeddings": "node --env-file=.env.local --conditions=react-server --import tsx scripts/generar-embeddings.mts",
+    "semantica": "node --env-file=.env.local --conditions=react-server --import tsx scripts/probar-semantica.mts"
   },
   "dependencies": {
     "@ai-sdk/amazon-bedrock": "^5.0.145",

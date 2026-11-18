@@ -93,7 +93,7 @@ sequenceDiagram
 
 | Tool | Qué hace |
 |---|---|
-| `buscar_candidatos(presupuesto_max, preferencias_texto)` | Filtra restaurantes por precio y afinidad culinaria (SQL + búsqueda semántica). |
+| `buscar_candidatos(presupuesto_max, preferencias_texto)` | Filtra por precio y ordena por **significado** (RAG con pgvector: embeddings `gte-small` de cada restaurante y plato). "Algo ligero y asiático" encuentra el poke aunque su ficha no lo diga. Si no hay embeddings, busca por palabras. |
 | `auditar_carta_grupo(restaurante_id, lista_perfiles)` | Cruza ingredientes y `nota_cocina` de cada plato con cada comensal → 🟢 / 🟡 / 🔴. |
 | `consultar_experiencia_previa(firma_perfil)` | Mira si grupos con restricciones equivalentes eligieron ese local, y cuántas veces. |
 | `registrar_feedback_eleccion(firma_perfil, restaurante_id, platos)` | Al pulsar "Confirmar elección", suma 1 al contador para reforzar futuras recomendaciones. |
@@ -166,6 +166,11 @@ cp .env.example .env.local     # rellenar (ver comentarios dentro del archivo)
 **Base de datos.** En Supabase, abre **SQL Editor → New query** y ejecuta, por este orden:
 1. [`supabase/migrations/0001_esquema_inicial.sql`](supabase/migrations/0001_esquema_inicial.sql): tablas, función y seguridad.
 2. [`supabase/seed.sql`](supabase/seed.sql): 12 restaurantes ficticios de Madrid con 72 platos de prueba.
+3. [`supabase/migrations/0002_busqueda_semantica.sql`](supabase/migrations/0002_busqueda_semantica.sql): índices vectoriales y función de búsqueda por significado.
+
+**Búsqueda semántica (opcional; sin ella se busca por palabras).** En Supabase, **Edge Functions → Deploy a new function → Via Editor**, con nombre `embed`. Sustituye la plantilla por el código de [`supabase/functions/embed/index.ts`](supabase/functions/embed/index.ts). Solo acepta la clave secreta, así que únicamente la puede llamar el servidor. Después calcula los embeddings con `npm run embeddings`. Hay que volver a ejecutarlo cuando se añadan restaurantes o platos.
+
+> **Limitación conocida:** `gte-small` está entrenado sobre todo en inglés. Acierta muy bien con conceptos concretos ("ramen" encuentra Sushi Kaze por su *Ramen tonkotsu*; "quesos franceses", Le Petit Fromage), pero flojea con expresiones muy españolas o abstractas ("comida de cuchara"). El agente lo compensa porque lee las descripciones antes de recomendar.
 
 ```bash
 npm run db:check      # comprueba claves, tablas y datos
@@ -173,6 +178,9 @@ npm run ia:check      # qué modelos de IA responden (Bedrock / Gemini) y cuánt
 npm run test:reglas   # prueba el motor de reglas del semáforo (sin IA)
 npm run agente -- "Somos 2: Ana celíaca y Bea vegana, presupuesto €"   # habla con el agente
 npm run carta -- foto-carta.jpg   # lee una carta (foto o .txt) y muestra el semáforo
+npm run embeddings    # calcula los embeddings de restaurantes y platos (búsqueda semántica)
+npm run semantica -- "algo ligero y asiático"   # prueba la búsqueda por significado
+npm run benchmark     # compara modelos de IA (rapidez y calidad)
 npm run dev           # http://localhost:3000
 ```
 
@@ -223,7 +231,7 @@ scripts/                 Comprobación de la BD y pruebas de reglas y agente
 - [x] **Fase 2:** agente con las 4 herramientas (`/api/chat`) + motor de reglas del semáforo
 - [x] **Fase 3:** Modo 1: configurador de grupo + resultados en lista y mapa, con el progreso del agente en vivo
 - [x] **Fase 4:** Modo 2 (foto de la carta, texto pegado o restaurante de la lista) + ficha del local con carta semáforo y "Confirmar elección"
-- [ ] **Fase 5:** memoria colectiva + búsqueda semántica (RAG)
+- [x] **Fase 5:** memoria colectiva + búsqueda semántica (RAG con pgvector y embeddings `gte-small` en una Edge Function de Supabase)
 - [ ] **Fase 6:** despliegue en Vercel
 
 > ⚠️ **Aviso:** demo académica con restaurantes ficticios. Las recomendaciones del agente no sustituyen la confirmación con el personal del restaurante en caso de alergias graves.

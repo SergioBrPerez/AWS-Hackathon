@@ -214,6 +214,21 @@ const normalizar = (t: string) => t.toLowerCase().normalize("NFD").replace(/[\u0
 function ListaRestaurantes({ onElegir, onHacerFoto }: { onElegir: (id: string) => void; onHacerFoto: () => void }) {
   const [lista, setLista] = useState<(Pick<Restaurante, "id" | "nombre" | "tipo_cocina" | "direccion"> & { km: number })[]>();
   const [q, setQ] = useState("");
+  const [semantica, setSemantica] = useState<{ restaurante_id: string; plato_coincidente: string | null }[]>([]);
+
+  // Búsqueda por significado (Fase 5), con una pequeña espera mientras se escribe
+  useEffect(() => {
+    const texto = q.trim();
+    if (texto.length < 3) { setSemantica([]); return; }
+    const ctrl = new AbortController();
+    const t = setTimeout(() => {
+      fetch(`/api/buscar?q=${encodeURIComponent(texto)}`, { signal: ctrl.signal })
+        .then((r) => r.json())
+        .then((d) => setSemantica(d.disponible ? d.resultados : []))
+        .catch(() => {});
+    }, 400);
+    return () => { clearTimeout(t); ctrl.abort(); };
+  }, [q]);
 
   useEffect(() => {
     supabaseBrowser.from("restaurantes").select("id, nombre, tipo_cocina, direccion, latitud, longitud").then(({ data }) => {
@@ -229,6 +244,14 @@ function ListaRestaurantes({ onElegir, onHacerFoto }: { onElegir: (id: string) =
   const filtrados = (lista ?? []).filter((r) =>
     normalizar(q).trim().split(/\s+/).every((palabra) => normalizar(`${r.nombre} ${r.tipo_cocina} ${r.direccion}`).includes(palabra)),
   );
+  // Sugerencias por significado que no aparecen ya en las coincidencias por palabras
+  const relacionados = q.trim().length >= 3
+    ? semantica
+        .filter((s) => !filtrados.some((f) => f.id === s.restaurante_id))
+        .map((s) => ({ ...s, r: lista?.find((x) => x.id === s.restaurante_id) }))
+        .filter((s) => s.r)
+        .slice(0, 4)
+    : [];
 
   return (
     <div className="flex flex-col gap-3">
@@ -236,14 +259,14 @@ function ListaRestaurantes({ onElegir, onHacerFoto }: { onElegir: (id: string) =
         type="search"
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        placeholder="Nombre, tipo de cocina o calle…"
+        placeholder="Nombre, cocina, calle… o lo que te apetezca"
         aria-label="Buscar restaurante"
         className="w-full rounded-xl border border-line bg-card px-4 py-3 text-base"
       />
 
       {!lista ? (
         <p className="text-sm text-muted">Cargando restaurantes…</p>
-      ) : filtrados.length === 0 ? (
+      ) : filtrados.length === 0 && relacionados.length === 0 ? (
         <div className="rounded-2xl border border-dashed border-line bg-card p-5 text-center text-sm">
           <p>No tenemos <strong>«{q.trim()}»</strong> en nuestra base de datos.</p>
           <button onClick={onHacerFoto} className="mt-3 rounded-xl bg-brand px-4 py-2.5 font-semibold text-white">📷 Hacer foto a su carta</button>
@@ -251,7 +274,9 @@ function ListaRestaurantes({ onElegir, onHacerFoto }: { onElegir: (id: string) =
       ) : (
         <>
           <p className="text-sm text-muted">
-            {q.trim() ? `${filtrados.length} ${filtrados.length === 1 ? "resultado" : "resultados"}` : `¿En cuál estáis? Ordenados por cercanía a ${UBICACION.nombre}.`}
+            {q.trim()
+              ? filtrados.length ? `${filtrados.length} ${filtrados.length === 1 ? "resultado" : "resultados"} por nombre, cocina o calle` : "Ninguno por nombre, pero mira estos:"
+              : `¿En cuál estáis? Ordenados por cercanía a ${UBICACION.nombre}.`}
           </p>
           {filtrados.map((r) => (
             <button key={r.id} onClick={() => onElegir(r.id)} className="flex items-center justify-between gap-3 rounded-2xl border border-line bg-card px-4 py-3 text-left transition hover:border-brand">
@@ -262,6 +287,22 @@ function ListaRestaurantes({ onElegir, onHacerFoto }: { onElegir: (id: string) =
               <span className="shrink-0 text-sm text-muted">{r.km.toFixed(1).replace(".", ",")} km</span>
             </button>
           ))}
+          {relacionados.length > 0 && (
+            <>
+              <p className="pt-2 text-sm font-semibold text-muted">✨ Relacionados por significado</p>
+              {relacionados.map(({ r, plato_coincidente }) => (
+                <button key={r!.id} onClick={() => onElegir(r!.id)} className="flex items-center justify-between gap-3 rounded-2xl border border-dashed border-brand/40 bg-brand-soft/50 px-4 py-3 text-left transition hover:border-brand">
+                  <span className="min-w-0">
+                    <span className="block truncate font-medium">{r!.nombre}</span>
+                    <span className="block truncate text-sm text-muted">
+                      {plato_coincidente ? `Por su «${plato_coincidente}»` : `Cocina ${r!.tipo_cocina}`} · {r!.direccion.replace(/, Madrid$/, "")}
+                    </span>
+                  </span>
+                  <span className="shrink-0 text-sm text-muted">{r!.km.toFixed(1).replace(".", ",")} km</span>
+                </button>
+              ))}
+            </>
+          )}
           <p className="pt-1 text-center text-sm text-muted">
             ¿No está en la lista? <button onClick={onHacerFoto} className="font-medium text-brand">Haz una foto a su carta</button>
           </p>

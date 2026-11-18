@@ -8,6 +8,7 @@ import type { Plato, Restaurante } from "@/lib/supabase/types";
 import { perfilSchema, firmaPerfil } from "@/lib/restricciones";
 import { auditarCarta } from "@/lib/semaforo/auditoria";
 import { normalizar } from "@/lib/semaforo/reglas";
+import { buscarSemantico } from "@/lib/busqueda/semantica";
 
 const PRECIO = ["", "€", "€€", "€€€"];
 
@@ -16,10 +17,10 @@ const PRECIO = ["", "€", "€€", "€€€"];
 // ---------------------------------------------------------------------------
 export const buscar_candidatos = tool({
   description:
-    "Busca restaurantes dentro del presupuesto y los ordena por afinidad con las preferencias culinarias. Devuelve candidatos SIN auditar la carta.",
+    "Busca restaurantes dentro del presupuesto y los ordena por afinidad con lo que les apetece. Usa búsqueda SEMÁNTICA (por significado: 'algo ligero y asiático' encuentra sushi o poke) sobre la ficha y los platos de cada local; 'plato_coincidente' indica el plato que mejor encaja. La búsqueda semántica no entiende negaciones ('nada de fritos'): aplica tú esos vetos. Devuelve candidatos SIN auditar la carta.",
   inputSchema: z.object({
     presupuesto_max: z.number().int().min(1).max(3).describe("1=€, 2=€€, 3=€€€"),
-    preferencias_texto: z.string().describe("Lo que les apetece, p.ej. 'italiana o tapas'. Cadena vacía si no hay preferencia."),
+    preferencias_texto: z.string().describe("Lo que les apetece, en positivo, p.ej. 'italiana o tapas'. Cadena vacía si no hay preferencia."),
   }),
   execute: async ({ presupuesto_max, preferencias_texto }) => {
     const { data, error } = await supabaseServer()
@@ -28,17 +29,26 @@ export const buscar_candidatos = tool({
       .lte("rango_precio", presupuesto_max);
     if (error) return { error: error.message };
 
-    // Afinidad simple por palabras clave (en la Fase 5 se sustituye por búsqueda semántica)
+    // 1º búsqueda semántica (pgvector); si no está disponible, afinidad por palabras clave
+    const semantica = await buscarSemantico(preferencias_texto, presupuesto_max, 50);
+    const porId = new Map(semantica?.map((s) => [s.restaurante_id, s]));
     const palabras = normalizar(preferencias_texto).split(/[^a-z]+/).filter((w) => w.length > 3);
+
     const candidatos = (data as Restaurante[])
       .map((r) => {
-        const texto = normalizar(`${r.nombre} ${r.tipo_cocina} ${r.descripcion ?? ""}`);
-        const afinidad = palabras.filter((w) => texto.includes(w.slice(0, 5))).length;
-        return { id: r.id, nombre: r.nombre, cocina: r.tipo_cocina, precio: PRECIO[r.rango_precio], direccion: r.direccion, descripcion: r.descripcion, patrocinado: r.patrocinado, latitud: r.latitud, longitud: r.longitud, afinidad };
+        const s = porId.get(r.id);
+        const afinidad = semantica
+          ? (s?.similitud ?? 0)
+          : palabras.filter((w) => normalizar(`${r.nombre} ${r.tipo_cocina} ${r.descripcion ?? ""}`).includes(w.slice(0, 5))).length;
+        return {
+          id: r.id, nombre: r.nombre, cocina: r.tipo_cocina, precio: PRECIO[r.rango_precio], direccion: r.direccion,
+          descripcion: r.descripcion, patrocinado: r.patrocinado, latitud: r.latitud, longitud: r.longitud,
+          afinidad, plato_coincidente: s?.plato_coincidente ?? null,
+        };
       })
       .sort((a, b) => b.afinidad - a.afinidad || Number(b.patrocinado) - Number(a.patrocinado));
 
-    return { total: candidatos.length, candidatos };
+    return { total: candidatos.length, busqueda: semantica ? "semantica" : "palabras", candidatos };
   },
 });
 
